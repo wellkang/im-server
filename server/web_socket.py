@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-import socket
+import socket;socket.socket.connect
 
 import gevent
 
