@@ -15,12 +15,10 @@ class BaseServer(asyncore.dispatcher, object):
         self.bind((host, port))
         self.listen(5)
         self.user_map = {}
-        self.count = 1
 
     def handle_accept(self, client=BaseClient):
         conn, addr = self.accept()
-        client(conn, self.user_map, self._map, self.count)
-        self.count += 1
+        client(conn, self.user_map, self._map)
 
 
 if __name__ == '__main__':
