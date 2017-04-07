@@ -4,9 +4,38 @@ import asynchat
 import json
 import hashlib
 import base64
+import logging
+import struct
+
+logger = logging.getLogger(__name__)
 
 MESSAGE_TYPE = {"one_to_one": 1, "chat_room": 2, "connect": "connect"}
 MESSAGE_ERROR = {"unknow_message_type": "1", "unknow_from_user": "2", "unkonw_target": "3"}
+
+
+def parse_http_req(data):
+    header = dict()
+    params = dict()
+    data = data.split('\r\n')
+    method, uri, protocol = data[0].split(' ')
+    if len(uri.split('?', 1)) == 2:
+        params_str = uri.split('?')[-1]
+        for _ in params_str.split('&'):
+            k, v = _.split('=', 1)
+            params[k] = v
+    header['method'], header['protocol'] = method, protocol
+    for item in data[1:]:
+        if ":" in item:
+            k, v = item.split(':', 1)
+            header[k] = v.strip()
+    return {"header": header, "params": params}
+
+
+def gen_accept_key(sec_websocket_key):
+    print sec_websocket_key
+    sha1 = hashlib.sha1(sec_websocket_key)
+    sha1.update('258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+    return base64.b64encode(sha1.digest())
 
 
 class BaseClient(asynchat.async_chat, object):
@@ -19,6 +48,7 @@ class BaseClient(asynchat.async_chat, object):
         self.handshake = False
 
     def collect_incoming_data(self, data):
+        print data
         self.dispatch(data)
 
     def found_terminator(self):
@@ -27,23 +57,27 @@ class BaseClient(asynchat.async_chat, object):
     def add_channel(self, map=None):
         super(BaseClient, self).add_channel(map)
         if self.user_id:
+            self.handshake = True
             self._user_map[self.user_id] = self._fileno
 
     def del_channel(self, map=None):
         if self.user_id and self.user_id in self._user_map:
             del self._user_map[self.user_id]
+        self.handshake = False
         super(BaseClient, self).del_channel(map)
 
     def dispatch(self, data):
-        print data
+        logger.debug(data)
+        # print struct.unpack(data)
         if not self.handshake:
             self.handle_handshake(data)
         else:
-            message_type = data.get('message_type')
-            if not message_type or message_type not in MESSAGE_TYPE.values():
-                self.push(MESSAGE_ERROR['unknow_message_type'])
-            elif message_type == MESSAGE_TYPE['one_to_one']:
-                self.handle_message_one_to_one(data)
+            self.push("ok1")
+            # message_type = data.get('message_type')
+            # if not message_type or message_type not in MESSAGE_TYPE.values():
+            #     self.push(MESSAGE_ERROR['unknow_message_type'])
+            # elif message_type == MESSAGE_TYPE['one_to_one']:
+            #     self.handle_message_one_to_one(data)
 
     def handle_message_one_to_one(self, data):
         target = data.get('target')
@@ -55,20 +89,15 @@ class BaseClient(asynchat.async_chat, object):
             # todo: into database
 
     def handle_handshake(self, data):
-        req_data = self.parse_http_req(data)
+        req_data = parse_http_req(data)
         print req_data
-        self.del_channel()
-
-    def parse_http_req(self, data):
-        header = dict()
-        data = data.split('\r\n')
-        for item in data[1:]:
-            if ":" in item:
-                k, v = item.split(':', 1)
-                header[k] = v
-        return {"header": header}
-
-    def gen_accept_key(self, sec_websocket_key):
-        sha1 = hashlib.sha1(sec_websocket_key)
-        sha1.update('258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
-        return base64.b64encode(sha1.hexdigest())
+        if "token" not in req_data['params']:
+            self.del_channel()
+            return
+        else:
+            self.user_id = req_data['params']['token']
+        if 'Sec-WebSocket-Key' in req_data['header']:
+            hash_key = gen_accept_key(req_data['header']['Sec-WebSocket-Key'])
+            resp = """ HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {}\r\n\r\n""".format(hash_key)
+            self.push(resp)
+            self.add_channel()

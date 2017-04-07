@@ -8,6 +8,7 @@ from flask import render_template
 
 from server.server import BaseServer
 
+
 app = Flask(__name__)
 
 

@@ -2,6 +2,7 @@
 
 import asyncore
 import socket
+import logging
 
 from client import BaseClient
 
@@ -18,6 +19,7 @@ class BaseServer(asyncore.dispatcher, object):
 
     def handle_accept(self, client=BaseClient):
         conn, addr = self.accept()
+
         client(conn, self.user_map, self._map)
 
 
