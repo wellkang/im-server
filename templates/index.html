@@ -2,11 +2,13 @@
 <html lang="zh_CN">
 <head>
     <meta charset="UTF-8">
+    <meta name = "viewport" content = "width=device-width,initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" >
     <title>index</title>
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
-    <h1>hello word</h1>
+    <h1>Chat</h1>
+    <div id="chat-content" style="width: 80%; height: 500px; background: lightgreen;overflow-y: scroll"></div>
     token<input type="text" id="user_id">
     消息体<input type="text" id="content">
     目标用户<input type="text" id="target">
@@ -31,10 +33,13 @@
     //连接成功建立的回调方法
     websocket.onopen = function () {
         console.log("websocket连接成功");
+        $("#connect").hide()
     };
     //接收到消息的回调方法
     websocket.onmessage = function (event)  {
         console.log(event.data);
+        var line = "<p>呵呵:" + event.data + "</p>"
+        $("#chat-content").append(line)
      };
 
     //连接关闭的回调方法
@@ -58,9 +63,29 @@
      }
     });
 
+    var offset = 0
     $("#send").click(function () {
-        data = JSON.stringify({"message_type": 1, "target": $("#target").val(), "content": $("#content").val()});
+        var content = $("#content").val()
+        data = JSON.stringify({"message_type": 1, "target": $("#target").val(), "content": content});
+        $("#content").val("");
         websocket.send(data);
+        var line = "<p>我:" + content + "</p>"
+        $("#chat-content").append(line)
+        offset += 50
+        $("#chat-content").scrollTop(offset)
+    })
+
+    $("#content").keydown(function (event) {
+        if(event.keyCode == "13"){
+            var content = $("#content").val()
+            data = JSON.stringify({"message_type": 1, "target": $("#target").val(), "content": content});
+            $("#content").val("");
+            websocket.send(data);
+            var line = "<p>我:" + content + "</p>"
+            $("#chat-content").append(line)
+            offset += 50
+            $("#chat-content").scrollTop(offset)
+        }
     })
  </script>
 </body>

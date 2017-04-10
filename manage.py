@@ -2,11 +2,14 @@
 
 import threading
 import asyncore
+import logging
 
 from flask import Flask
 from flask import render_template
 
 from server.server import BaseServer
+
+logging.basicConfig(level=logging.DEBUG, filename="debug.log")
 
 
 app = Flask(__name__)
