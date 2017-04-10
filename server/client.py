@@ -13,6 +13,10 @@ MESSAGE_TYPE = {"one_to_one": 1, "chat_room": 2, "connect": "connect"}
 MESSAGE_ERROR = {"unknow_message_type": "1", "unknow_from_user": "2", "unkonw_target": "3"}
 
 
+def ws_response(content=""):
+    return '%c%c%s' % (0x81, len(content), content)
+
+
 def parse_http_req(data):
     header = dict()
     params = dict()
@@ -66,26 +70,38 @@ class BaseClient(asynchat.async_chat, object):
         self.handshake = False
         super(BaseClient, self).del_channel(map)
 
+    def parse_data(self, msg):
+        v = ord(msg[1]) & 0x7f
+        if v == 0x7e:
+            p = 4
+        elif v == 0x7f:
+            p = 10
+        else:
+            p = 2
+        mask = msg[p:p + 4]
+        data = msg[p + 4:]
+
+        return ''.join([chr(ord(v) ^ ord(mask[k % 4])) for k, v in enumerate(data)])
+
     def dispatch(self, data):
-        logger.debug(data)
         # print struct.unpack(data)
         if not self.handshake:
             self.handle_handshake(data)
         else:
-            self.push("ok1")
-            # message_type = data.get('message_type')
-            # if not message_type or message_type not in MESSAGE_TYPE.values():
-            #     self.push(MESSAGE_ERROR['unknow_message_type'])
-            # elif message_type == MESSAGE_TYPE['one_to_one']:
-            #     self.handle_message_one_to_one(data)
+            data = json.loads(self.parse_data(data))
+            message_type = data.get('message_type')
+            if not message_type or message_type not in MESSAGE_TYPE.values():
+                self.push(MESSAGE_ERROR['unknow_message_type'])
+            elif message_type == MESSAGE_TYPE['one_to_one']:
+                self.handle_message_one_to_one(data)
 
     def handle_message_one_to_one(self, data):
         target = data.get('target')
-        content = data.get('content')
+        content = data.get('content').encode("utf8")
         if target in self._user_map:
-            self._map[self._user_map[target]].push(content)
+            self._map[self._user_map[target]].push(ws_response(content))
         else:
-            self.push("offline")
+            self.push(ws_response("offline"))
             # todo: into database
 
     def handle_handshake(self, data):
