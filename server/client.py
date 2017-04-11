@@ -88,9 +88,11 @@ class BaseClient(asynchat.async_chat, object):
 
     def dispatch(self, data):
         if not self.handshake:
+            logger.debug(data)
             self.handle_handshake(data)
         else:
             data = json.loads(self.parse_data(data))
+            logger.debug(data)
             message_type = data.get('message_type')
             if not message_type or message_type not in MESSAGE_TYPE.values():
                 self.push(MESSAGE_ERROR['unknow_message_type'])

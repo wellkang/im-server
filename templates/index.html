@@ -9,11 +9,15 @@
 <body>
     <h1>Chat</h1>
     <div id="chat-content" style="width: 80%; height: 500px; background: lightgreen;overflow-y: scroll"></div>
-    token<input type="text" id="user_id">
-    消息体<input type="text" id="content">
-    目标用户<input type="text" id="target">
-    <button id="connect">连接</button>
-    <button id="send">发送</button>
+    <div id="chat-conn">
+        token<input type="text" id="user_id">
+        <button id="connect">连接</button>
+    </div>
+    <div id="chat-input" hidden>
+        消息体<textarea type="text" id="content" ></textarea>
+        目标用户<input type="text" id="target" >
+        <button id="send">发送</button>
+    </div>
 <script type="text/javascript">
     var websocket = null;
     $('#connect').click(function () {
@@ -33,7 +37,8 @@
     //连接成功建立的回调方法
     websocket.onopen = function () {
         console.log("websocket连接成功");
-        $("#connect").hide()
+        $("#chat-conn").hide()
+        $("#chat-input").show()
     };
     //接收到消息的回调方法
     websocket.onmessage = function (event)  {

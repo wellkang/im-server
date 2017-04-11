@@ -7,6 +7,9 @@ import logging
 from client import BaseClient
 
 
+logger = logging.getLogger(__name__)
+
+
 class BaseServer(asyncore.dispatcher, object):
 
     def __init__(self, host='localhost', port=8090):
@@ -19,7 +22,7 @@ class BaseServer(asyncore.dispatcher, object):
 
     def handle_accept(self, client=BaseClient):
         conn, addr = self.accept()
-
+        logger.debug(addr)
         client(conn, self.user_map, self._map)
 
 
