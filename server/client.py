@@ -5,7 +5,6 @@ import json
 import hashlib
 import base64
 import logging
-import struct
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +13,10 @@ MESSAGE_ERROR = {"unknow_message_type": "1", "unknow_from_user": "2", "unkonw_ta
 
 
 def ws_response(content=""):
+    """
+    :param content:
+    :return:
+    """
     return '%c%c%s' % (0x81, len(content), content)
 
 
@@ -84,7 +87,6 @@ class BaseClient(asynchat.async_chat, object):
         return ''.join([chr(ord(v) ^ ord(mask[k % 4])) for k, v in enumerate(data)])
 
     def dispatch(self, data):
-        # print struct.unpack(data)
         if not self.handshake:
             self.handle_handshake(data)
         else:
