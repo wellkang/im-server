@@ -1,5 +1,7 @@
 # -*- coding: utf8 -*-
-from manage import db
+import datetime
+
+from conf import db
 
 
 class User(db.Model):
@@ -10,6 +12,7 @@ class User(db.Model):
     head_photo = db.Column(db.String(128), unique=True)
     password = db.Column(db.String(93))
     nickname = db.Column(db.String(20))
+    time_created = db.Column(db.DateTime())
 
     def __init__(self, username, password, email='', mobile='', head_photo='', nickname=''):
         self.username = username
@@ -18,6 +21,7 @@ class User(db.Model):
         self.email = email
         self.mobile = mobile
         self.head_photo = head_photo
+        self.time_created = datetime.datetime.now()
 
     def __repr__(self):
         return '<user %s>' % self.username
@@ -34,7 +38,8 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
-    def get(self, user_id):
+    @classmethod
+    def get(cls, user_id):
         return User.query.get(int(user_id))
 
 
