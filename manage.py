@@ -33,6 +33,7 @@ def init_app(flask_app):
     flask_app.add_url_rule('/', view_func=index.index)
     flask_app.add_url_rule('/login', view_func=auth.login, methods=['GET', 'POST'])
     flask_app.add_url_rule('/register', view_func=auth.register, methods=['GET', 'POST'])
+    flask_app.add_url_rule('/logout', view_func=auth.logout, methods=['GET', 'POST'])
 
 
 if __name__ == '__main__':

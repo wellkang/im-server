@@ -50,5 +50,27 @@ class Friend(db.Model):
     time_created = db.Column(db.DateTime())
     is_delete = db.Column(db.Boolean())
 
+    def __init__(self, from_user, to_user):
+        self.from_user = from_user
+        self.to_user = to_user
+        self.time_created = datetime.datetime.now()
+        self.is_delete = False
+
+
+class ChatContent(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    from_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    to_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    time_created = db.Column(db.DateTime())
+    content = db.Column(db.String(256))
+    is_delete = db.Column(db.Boolean())
+
+    def __init__(self, from_user, to_user, content):
+        self.from_user = from_user
+        self.to_user = to_user
+        self.content = content
+        self.time_created = datetime.datetime.now()
+        self.is_delete = False
+
 if __name__ == '__main__':
     db.create_all()

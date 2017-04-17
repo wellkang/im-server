@@ -2,7 +2,7 @@
 from flask import request, render_template, redirect, url_for
 from flask_login import login_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import datetime
+from flask_login import login_required, logout_user
 
 from models.user import User
 from conf import db
@@ -31,3 +31,9 @@ def register():
         db.session.commit()
         return redirect('login')
     return render_template('register.html')
+
+
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
