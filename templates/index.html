@@ -7,23 +7,27 @@
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
-    <h1>{{content.user.username}}</h1>
-    <div style="text-align: center;width: 100%; margin: 100px 20%;">
-        <div style="float: left;background: skyblue; width: 15%;height: 800px; padding: 10px 20px">
-            <div>
-                <div style="height: 50px;float: left"><img src="www.img" style="width: 50px;height: 50px"></div>
-                <div style="font-size: 20px;font-weight: bolder; line-height: 50px;text-align: center; height: 50px;float: left">{{content.user.username}}</div>
+    <div style="width: 70%;margin: 80px auto;height: 600px;background: #FFEBCD;position: relative">
+        <div style="width: 30%; background: #FFC1C1;height: 100%;float: left;">
+            <div style="padding: 5% 5%; height: 10%">
+                <div style="width: 40%;height: 100%; background: #EEE8AA;float: left;text-align: center;
+">
+                    <img src="{{url_for('static', filename='head_photo.jpg')}}" style="width: 60px; height: 60px;">
+                </div>
+                <div style="width: 60%;height: 100%;background: #EE9572;float: left;text-align: center;">
+                    <strong style="line-height: 60px;text-align: center;padding-left: 5%">{{content.user.username}}</strong>
+                </div>
+            </div>
+            <div style="padding-top: 5px;background:#F0F8FF;height: 90%;overflow-y: auto;position: relative;">
+                <div style="margin: 5px 5px;background: #EEE685; height: 7%">1</div>
+                <div style="margin: 5px 5px;background: #EEE685; height: 7%">2</div>
+                <div style="margin: 5px 5px;background: #EEE685; height: 7%">3</div>
+                <div style="margin: 5px 5px;background: #EEE685; height: 7%">4</div>
+                <div style="margin: 5px 5px;background: #EEE685; height: 7%">5</div>
+                <div style="margin: 5px 5px;background: #EEE685; height: 7%">6</div>
             </div>
         </div>
-        <div id="chat-content" style="float: left;width: 45%; background: lightgreen;height: 800px">
-            <div style="height: 600px; background: navajowhite;overflow-y: scroll"></div>
-            <div style="height: 200px; background: #BFDDE0"></div>
-        </div>
-    </div>
-    <div id="chat-input" hidden>
-        消息体<textarea type="text" id="content" ></textarea>
-        目标用户<input type="text" id="target" >
-        <button id="send">发送</button>
+        <div style="width: 70%; background: #EED8AE;height: 100%;float: left;"></div>
     </div>
 <script type="text/javascript">
     console.log("{{content.user}}");
