@@ -43,5 +43,12 @@ class User(db.Model):
         return User.query.get(int(user_id))
 
 
+class Friend(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    from_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    to_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    time_created = db.Column(db.DateTime())
+    is_delete = db.Column(db.Boolean())
+
 if __name__ == '__main__':
     db.create_all()
