@@ -58,6 +58,9 @@
     //接收到消息的回调方法
     websocket.onmessage = function (event)  {
         console.log(event.data);
+        if(event.data == 'offline'){
+            return false
+        }
         var data = JSON.parse(event.data)
         console.log(data)
         var line = "<p>" + data.from_username + ":" + data.content + "</p>";

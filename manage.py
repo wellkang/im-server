@@ -39,8 +39,16 @@ def init_app(flask_app):
     # ===== api路由 ====
     api.add_resource(user.FindUserAPI, '/users')
 
+    # ===== websocket服务端 ====
+    threading.Thread(target=start_ws_server).start()
+
+
+init_app(app)
+
+
+application = app
+
 
 if __name__ == '__main__':
-    threading.Thread(target=start_ws_server).start()
     init_app(app)
     manager.run()

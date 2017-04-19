@@ -17,7 +17,11 @@ def ws_response(content=""):
     :param content:
     :return:
     """
-    return '%c%c%s' % (0x81, len(content), content)
+    l = len(content)
+    if l < 126:
+        return '%c%c%s' % (0x81, len(content), content)
+    elif 126 <= l < 65535:
+        return '%c%c%c%c%s' % (0x81, 126, l >> 8, l & 255, content)
 
 
 def parse_http_req(data):
@@ -88,11 +92,14 @@ class BaseClient(asynchat.async_chat, object):
 
     def dispatch(self, data):
         if not self.handshake:
-            logger.debug(data)
             self.handle_handshake(data)
         else:
-            data = json.loads(self.parse_data(data))
-            logger.debug(data)
+            try:
+                raw_data = self.parse_data(data)
+                data = json.loads(raw_data)
+            except Exception:
+                logger.error(raw_data)
+                return
             message_type = data.get('message_type')
             if not message_type or message_type not in MESSAGE_TYPE.values():
                 self.push(MESSAGE_ERROR['unknow_message_type'])
@@ -103,9 +110,9 @@ class BaseClient(asynchat.async_chat, object):
         target = data.get('target')
         content = data.get('content').encode("utf8")
         if target in self._user_map:
-            self._map[self._user_map[target]].push(ws_response(json.dumps(data)))
+            self._map[self._user_map[target]].send(ws_response(json.dumps(data)))
         else:
-            self.push(ws_response("offline"))
+            self.send(ws_response("offline"))
             # todo: into database
 
     def handle_handshake(self, data):
