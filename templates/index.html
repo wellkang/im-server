@@ -18,33 +18,29 @@
                     <strong style="line-height: 60px;text-align: center;padding-left: 5%">{{content.user.username}}</strong>
                 </div>
             </div>
-            <div style="padding-top: 5px;background:#C7C7C7;height: 535px;overflow-y: auto;position: relative;">
-                <div style="margin: 5px 5px;background: #EEE685; height: 7%">1</div>
-                <div style="margin: 5px 5px;background: #EEE685; height: 7%">2</div>
-                <div style="margin: 5px 5px;background: #EEE685; height: 7%">3</div>
-                <div style="margin: 5px 5px;background: #EEE685; height: 7%">4</div>
-                <div style="margin: 5px 5px;background: #EEE685; height: 7%">5</div>
-                <div style="margin: 5px 5px;background: #EEE685; height: 7%">6</div>
+            <div style="padding-top: 5px;background:#C7C7C7;height: 535px;overflow-y: auto;position: relative;" id="friends_panel">
             </div>
         </div>
         <div style="width: 70%;max-width: 700px; background: #EED8AE;height: 100%;float: left;">
-            <div style="height: 5%;width: 100%;background: #CDB79E"></div>
-            <div style="height: 65%;width: 100%;background: #BFEFFF;overflow-y: auto">
-                <p>科比:</p>
+            <div style="height: 5%;width: 100%;background: #CDB79E" id="target_user"></div>
+            <div style="height: 65%;width: 100%;background: #BFEFFF;overflow-y: auto;" id="chat_content">
             </div>
-            <div style="height: 30%;width: 100%;background: #CDB79E"></div>
+            <textarea style="height: 30%;width: 100%;background: #CDB79E;padding: 0 0;border: none;font-size: 20px" id="input_content"></textarea>
         </div>
         <div>
             <button><a href="{{url_for('logout')}}">退出</a></button>
         </div>
     </div>
 <script type="text/javascript">
-    console.log("{{content.user}}");
+    var target_user = null;
+    var user_id = "{{content.user.id}}";
+    var user_name = "{{content.user.username}}";
+    var chat_list = {};  //存储不同用户的聊天信息
+
     var websocket = null;
-    $('#connect').click(function () {
      //判断当前浏览器是否支持WebSocket
     if ('WebSocket' in window) {
-        var token = $("#user_id").val();
+        var token = user_id;
         websocket = new WebSocket("ws://localhost:8090/websocket?token="+token);
      }
     else {
@@ -58,14 +54,17 @@
     //连接成功建立的回调方法
     websocket.onopen = function () {
         console.log("websocket连接成功");
-        $("#chat-conn").hide()
-        $("#chat-input").show()
     };
     //接收到消息的回调方法
     websocket.onmessage = function (event)  {
         console.log(event.data);
-        var line = "<p>呵呵:" + event.data + "</p>"
-        $("#chat-content").append(line)
+        var data = JSON.parse(event.data)
+        console.log(data)
+        var line = "<p>" + data.from_username + ":" + data.content + "</p>";
+        chat_list[data.from_user_id].push(line);
+        $("#chat_content").append(line);
+        offset += 50;
+        $("#chat_content").scrollTop(offset)
      };
 
     //连接关闭的回调方法
@@ -82,30 +81,46 @@
         websocket.close();
      }
 
+     // 发送消息
     var offset = 0;
-    $("#send").click(function () {
-        var content = $("#content").val()
-        data = JSON.stringify({"message_type": 1, "target": $("#target").val(), "content": content});
-        $("#content").val("");
-        websocket.send(data);
-        var line = "<p>我:" + content + "</p>"
-        $("#chat-content").append(line)
-        offset += 50
-        $("#chat-content").scrollTop(offset)
-    })
-
-    $("#content").keydown(function (event) {
+    $("#input_content").keydown(function (event) {
         if(event.keyCode == "13"){
-            var content = $("#content").val()
-            data = JSON.stringify({"message_type": 1, "target": $("#target").val(), "content": content});
-            $("#content").val("");
+            if(target_user == null){
+                alert('请选择好友')
+                return false
+            }
+            var content = $("#input_content").val()
+            data = JSON.stringify({"message_type": 1, "target": target_user, "content": content, "from_user_id": user_id, "from_username": user_name});
+            $("#input_content").val("");
             websocket.send(data);
-            var line = "<p>我:" + content + "</p>"
-            $("#chat-content").append(line)
-            offset += 50
-            $("#chat-content").scrollTop(offset)
+            var line = "<p>{{content.user.username}}:" + content + "</p>";
+            chat_list[target_user].push(line);
+            $("#chat_content").append(line);
+            offset += 50;
+            $("#chat_content").scrollTop(offset)
         }
     });
+
+    // 获取朋友列表
+    $.get('/users', function (data, status) {
+        console.log(data);
+        console.log(status);
+        $.each(data, function (n, user) {
+          chat_list[user.id] = [];
+          $('#friends_panel').append('<div style="margin: 5px 5px;background: #EEE685; height: 7%" user_id="'+ user.id +'" class="friend">'+ user.username +'</div>')
+        })
+    })
+
+    // 选择聊天朋友
+    $('#friends_panel').on('click', '.friend', function () {
+        var target_user_id = $(this).attr('user_id')
+        target_user = target_user_id;
+        $('#target_user').html($(this).html())
+         $("#chat_content").empty();
+        $.each(chat_list[target_user_id], function (n, line) {
+            $("#chat_content").append(line);
+        })
+    })
  </script>
 </body>
 </html>

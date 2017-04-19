@@ -9,12 +9,12 @@ class User(db.Model):
     username = db.Column(db.String(80))
     email = db.Column(db.String(120), unique=True)
     mobile = db.Column(db.String(11), unique=True)
-    head_photo = db.Column(db.String(128), unique=True)
+    head_photo = db.Column(db.String(128))
     password = db.Column(db.String(93))
     nickname = db.Column(db.String(20))
     time_created = db.Column(db.DateTime())
 
-    def __init__(self, username, password, email='', mobile='', head_photo='', nickname=''):
+    def __init__(self, username, password, email=None, mobile=None, head_photo='', nickname=''):
         self.username = username
         self.nickname = nickname
         self.password = password

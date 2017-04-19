@@ -103,7 +103,7 @@ class BaseClient(asynchat.async_chat, object):
         target = data.get('target')
         content = data.get('content').encode("utf8")
         if target in self._user_map:
-            self._map[self._user_map[target]].push(ws_response(content))
+            self._map[self._user_map[target]].push(ws_response(json.dumps(data)))
         else:
             self.push(ws_response("offline"))
             # todo: into database
