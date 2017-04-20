@@ -59,7 +59,6 @@ class BaseClient(asynchat.async_chat, object):
         self.handshake = False
 
     def collect_incoming_data(self, data):
-        print data
         self.dispatch(data)
 
     def found_terminator(self):
@@ -124,7 +123,11 @@ class BaseClient(asynchat.async_chat, object):
         else:
             self.user_id = req_data['params']['token']
         if 'Sec-WebSocket-Key' in req_data['header']:
+            logger.info('user %s connecting...' % self.user_id)
             hash_key = gen_accept_key(req_data['header']['Sec-WebSocket-Key'])
             resp = """ HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {}\r\n\r\n""".format(hash_key)
             self.push(resp)
             self.add_channel()
+        else:
+            logger.warn('user %s want to connect, but there is no Sec-WebSocket-Key,')
+            logger.warn('the req_data is: \n%s' % data)

@@ -5,7 +5,7 @@ import asyncore
 
 from flask_login import LoginManager
 
-from server.server import BaseServer
+from web_socket.server import BaseServer
 from conf import app, manager, api
 from web_app import auth, index, user
 from models.user import User
